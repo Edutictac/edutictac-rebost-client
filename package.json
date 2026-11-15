@@ -1,0 +1,12 @@
+{
+  "name": "@edutictac/rebost-client",
+  "version": "0.1.0",
+  "description": "Cliente compartido del Rebost de EduTicTac (API /api/assets/v1): sin framework, ES modules.",
+  "type": "module",
+  "license": "MIT",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "exports": {".": {"types": "./src/index.d.ts", "default": "./src/index.js"}, "./selection": {"types": "./src/selection.d.ts", "default": "./src/selection.js"}},
+  "files": ["src"],
+  "scripts": {"test": "node --test test/*.test.js"}
+}
