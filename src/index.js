@@ -99,7 +99,7 @@ export class RebostClient {
     return new Blob(chunks, {type: response.headers?.get?.('content-type') || ''});
   }
 
-  async content(id) { return this.blob(RebostClient.itemPath(id) + '/content', LIMITS.image); }
+  async content(id, limit = LIMITS.image) { return this.blob(RebostClient.itemPath(id) + '/content', limit); }
   async thumbnail(id) { return this.blob(RebostClient.itemPath(id) + '/thumbnail', LIMITS.image); }
   contentUrl(id) { return this.endpoint + RebostClient.itemPath(id) + '/content'; }
   thumbnailUrl(id) { return this.endpoint + RebostClient.itemPath(id) + '/thumbnail'; }

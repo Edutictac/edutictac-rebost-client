@@ -16,7 +16,7 @@ export declare class RebostClient {
   me(): Promise<unknown>; catalogs(): Promise<unknown>;
   item(id: string): Promise<RebostItem>; family(id: string): Promise<unknown>;
   list(q?: {q?: string; type?: string; cursor?: string; collection?: RebostCollection; grouped?: boolean; limit?: number}): Promise<RebostPage>;
-  content(id: string): Promise<Blob>; thumbnail(id: string): Promise<Blob>;
+  content(id: string, limit?: number): Promise<Blob>; thumbnail(id: string): Promise<Blob>;
   contentUrl(id: string): string; thumbnailUrl(id: string): string;
   add(file: Blob, o: {name: string; type: RebostType; credit?: string; license?: string}): Promise<RebostItem>;
   update(item: RebostItem, o: {name: string; type: RebostType}): Promise<RebostItem>;
