@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {RebostClient, RebostError, fetchSelection} from '../src/index.js';
+import {RebostClient, RebostError, fetchSelection, fetchResource, kindOf, sniffSound, LIMITS} from '../src/index.js';
 import {parseSelection, selectionMessage, cancelMessage, pickerUrl} from '../src/selection.js';
 
 const ID = 'img-' + 'a'.repeat(64);
@@ -119,4 +119,38 @@ test('pickerUrl incluye familias y colección', () => {
   assert.equal(u.searchParams.get('selection'), 'sprite');
   assert.equal(u.searchParams.get('collection'), 'scratch');
   assert.equal(u.searchParams.get('mode'), 'pick');
+});
+
+const OGG = new Uint8Array([0x4f, 0x67, 0x67, 0x53, 0, 2, 3, 4, 5, 6, 7, 8]);
+
+test('kindOf y sniffSound', () => {
+  assert.equal(kindOf({type: 'sound'}), 'sound');
+  assert.equal(kindOf({type: 'sprite'}), 'image');
+  assert.equal(sniffSound(OGG), 'audio/ogg');
+  assert.equal(sniffSound(new Uint8Array([0x49, 0x44, 0x33, 4])), 'audio/mpeg');
+  assert.equal(sniffSound(new TextEncoder().encode('RIFF1234WAVEfmt ')), 'audio/wav');
+  assert.equal(sniffSound(new Uint8Array([1, 2, 3, 4])), '');
+});
+
+test('fetchResource: sonido válido con crédito, rechazo por firma, tipo y kinds', async () => {
+  const meta = {id: ID, name: 'Plof', type: 'sound', collection: 'effects', revision: 3, license: 'CC0', source_id: 'kenney'};
+  const routes = {['/items/' + ID]: () => json(meta), ['/items/' + ID + '/content']: () => new Response(OGG, {headers: {'content-type': 'audio/ogg'}})};
+  const c = new RebostClient({fetch: fake(routes)});
+  const r = await fetchResource(c, ID);
+  assert.equal(r.kind, 'sound');
+  assert.equal(r.blob.type, 'audio/ogg');
+  assert.equal(r.credit.license, 'CC0');
+  await assert.rejects(fetchResource(c, ID, {kinds: ['image']}), e => e.code === 'invalid');
+  routes['/items/' + ID + '/content'] = () => new Response(new Uint8Array(12), {headers: {'content-type': 'audio/ogg'}});
+  await assert.rejects(fetchResource(c, ID), e => e.code === 'invalid');
+});
+
+test('fetchResource delega las imágenes en fetchSelection y add() limita sonidos a 2 MiB', async () => {
+  const c = new RebostClient({fetch: fake({
+    ['/items/' + ID]: () => json({id: ID, type: 'sprite', revision: 1, collection: 'mine'}),
+    ['/items/' + ID + '/content']: () => new Response(PNG, {headers: {'content-type': 'image/png'}}),
+  })});
+  assert.equal((await fetchResource(c, ID)).kind, 'image');
+  const big = {size: LIMITS.sound + 1, type: 'audio/ogg'};
+  await assert.rejects(c.add(big, {name: 'x', type: 'sound'}), e => e.message === 'sound_limit');
 });
