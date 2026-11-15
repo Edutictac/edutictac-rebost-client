@@ -154,3 +154,14 @@ test('fetchResource delega las imágenes en fetchSelection y add() limita sonido
   const big = {size: LIMITS.sound + 1, type: 'audio/ogg'};
   await assert.rejects(c.add(big, {name: 'x', type: 'sound'}), e => e.message === 'sound_limit');
 });
+
+test('add() con derivedFrom envía X-Rebost-Source e If-Match; readText limita', async () => {
+  const seen = [];
+  const c = new RebostClient({fetch: async (url, o) => { seen.push(o); return url.endsWith('/source') ? new Response('x'.repeat(10)) : json({id: ID}); }});
+  await c.add({size: 3, type: 'image/png'}, {name: 'Editat', type: 'sprite', derivedFrom: {id: ID, revision: 7}});
+  assert.equal(seen[0].headers['X-Rebost-Source'], ID);
+  assert.equal(seen[0].headers['If-Match'], '"7"');
+  await assert.rejects(c.add({size: 3, type: 'image/png'}, {name: 'x', type: 'sprite', derivedFrom: {id: 'img-zz', revision: 1}}), e => e.code === 'invalid_id');
+  assert.equal(await c.readText(ID, 'source', 100), 'x'.repeat(10));
+  await assert.rejects(c.readText(ID, 'source', 5), e => e.code === 'too_large');
+});

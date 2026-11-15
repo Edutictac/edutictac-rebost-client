@@ -22,7 +22,8 @@ export declare class RebostClient {
   list(q?: {q?: string; type?: string; cursor?: string; collection?: RebostCollection; grouped?: boolean; limit?: number}): Promise<RebostPage>;
   content(id: string, limit?: number): Promise<Blob>; thumbnail(id: string): Promise<Blob>;
   contentUrl(id: string): string; thumbnailUrl(id: string): string;
-  add(file: Blob, o: {name: string; type: RebostType; credit?: string; license?: string}): Promise<RebostItem>;
+  add(file: Blob, o: {name: string; type: RebostType; credit?: string; license?: string; derivedFrom?: {id: string; revision: number} | null}): Promise<RebostItem>;
+  readText(id: string, kind: 'source' | 'license', limit: number): Promise<string>;
   update(item: RebostItem, o: {name: string; type: RebostType}): Promise<RebostItem>;
   duplicate(item: RebostItem): Promise<RebostItem>; remove(item: RebostItem): Promise<void>;
 }
