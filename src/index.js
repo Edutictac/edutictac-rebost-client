@@ -45,7 +45,7 @@ export class RebostClient {
       throw new RebostError('network', 0, String(cause?.message ?? cause));
     }
     if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
+      const body = await Promise.resolve(response.json?.()).catch(() => null) ?? {};
       throw new RebostError(codeFor(response.status), response.status, typeof body.detail === 'string' ? body.detail : '');
     }
     return response;
@@ -137,14 +137,16 @@ const PNG = [137, 80, 78, 71, 13, 10, 26, 10];
  * @param {{types?:string[], locale?:string, changes?:string}} [options]
  * @returns {Promise<{item:object, name:string, blob:Blob, credit:object|null}>}
  */
-export async function fetchSelection(client, id, {types, locale = 'ca', changes = 'Imported as normalized PNG; may be edited.'} = {}) {
+export async function fetchSelection(client, id, {types, locale = 'ca', changes = 'Imported as normalized PNG; may be edited.', verifyPng = true} = {}) {
   const item = await client.item(id);
   if (item.id !== id || !Number.isSafeInteger(item.revision) || item.revision < 1) throw new RebostError('invalid');
   if (types && !types.includes(item.type)) throw new RebostError('invalid');
   const blob = await client.content(id);
-  if (blob.type.split(';')[0] !== 'image/png') throw new RebostError('invalid');
-  const head = new Uint8Array(await blob.slice(0, 8).arrayBuffer());
-  if (PNG.some((b, i) => head[i] !== b)) throw new RebostError('invalid');
+  if (verifyPng) {
+    if (String(blob.type).split(';')[0] !== 'image/png') throw new RebostError('invalid');
+    const head = new Uint8Array(await blob.slice(0, 8).arrayBuffer());
+    if (PNG.some((b, i) => head[i] !== b)) throw new RebostError('invalid');
+  }
   const key = locale === 'va' ? 'ca' : locale;
   const name = String(item.names?.[key] || item.name || 'Rebost').slice(0, 200);
   const origin = ['catalog', 'scratch'].includes(item.collection) ? item : item.provenance;

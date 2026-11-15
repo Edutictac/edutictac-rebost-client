@@ -75,3 +75,11 @@ test('parseSelection valida origen, fuente, petición y formato', () => {
   assert.deepEqual(parseSelection({...base, data: {...ok, family: true, familyRevision: 3}}, opt),
     {id: ID, family: true, familyRevision: 3});
 });
+
+test('verifyPng:false omite la comprobación de firma', async () => {
+  const c = new RebostClient({fetch: fake({
+    ['/items/' + ID]: () => json({id: ID, type: 'sprite', revision: 1}),
+    ['/items/' + ID + '/content']: () => new Response(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]), {headers: {'content-type': 'image/png'}}),
+  })});
+  assert.equal((await fetchSelection(c, ID, {verifyPng: false})).blob.size, 8);
+});

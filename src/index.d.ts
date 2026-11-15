@@ -22,5 +22,5 @@ export declare class RebostClient {
   update(item: RebostItem, o: {name: string; type: RebostType}): Promise<RebostItem>;
   duplicate(item: RebostItem): Promise<RebostItem>; remove(item: RebostItem): Promise<void>;
 }
-export declare function fetchSelection(c: RebostClient, id: string, o?: {types?: string[]; locale?: string; changes?: string}):
+export declare function fetchSelection(c: RebostClient, id: string, o?: {types?: string[]; locale?: string; changes?: string; verifyPng?: boolean}):
   Promise<{item: RebostItem; name: string; blob: Blob; credit: RebostCredit | null}>;
