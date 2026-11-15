@@ -6,7 +6,7 @@ export const CREDIT_KEYS = ['source_id', 'source_revision', 'source_path', 'sour
 
 export class RebostError extends Error {
   constructor(code, status = 0, detail = '') {
-    super(code);
+    super(detail || code); // `message` = código de detalle del servidor si lo hay (lo usan las interfaces para traducir)
     this.code = code; // session | not_found | conflict | too_large | invalid | network | operation_failed
     this.status = status;
     this.detail = detail;
@@ -107,7 +107,7 @@ export class RebostClient {
 
   /** Guarda un Blob/File en la biblioteca personal. */
   async add(file, {name, type, credit = '', license = ''}) {
-    if (!file.size || file.size > LIMITS.image) throw new RebostError('too_large');
+    if (!file.size || file.size > LIMITS.image) throw new RebostError('too_large', 413, 'image_limit');
     const headers = {'Content-Type': file.type || 'image/png', 'X-Rebost-Name': encodeURIComponent(String(name).slice(0, 200)),
       'X-Rebost-Type': type};
     if (credit) headers['X-Rebost-Credit'] = encodeURIComponent(credit.slice(0, 300));

@@ -83,3 +83,10 @@ test('verifyPng:false omite la comprobación de firma', async () => {
   })});
   assert.equal((await fetchSelection(c, ID, {verifyPng: false})).blob.size, 8);
 });
+
+test('message usa el detalle del servidor y add() informa image_limit', async () => {
+  const c = new RebostClient({fetch: async () => new Response('{"detail":"revision_conflict"}', {status: 412})});
+  await assert.rejects(c.remove({id: ID, revision: 1}), e => e.code === 'conflict' && e.message === 'revision_conflict');
+  const big = {size: 6 * 1024 * 1024, type: 'image/png'};
+  await assert.rejects(c.add(big, {name: 'x', type: 'sprite'}), e => e.code === 'too_large' && e.message === 'image_limit');
+});
