@@ -21,4 +21,4 @@ Errores: `RebostError.code` ∈ `session | not_found | conflict | too_large | in
 Pruebas: `npm test` (Node 20+). Contrato del mensaje y de la API: ver `docs/rebost.md` en Commons.
 
 ## Estado
-v0.1.0, sin publicar. Los consumidores aún no lo usan (pasos siguientes: Llibres → Blocs → EduCrea → Commons).
+v0.1.0. Repos: git.edutictac.es/Edutictac/edutictac-rebost-client (principal) y github.com/Edutictac/edutictac-rebost-client (espejo). Usado por Llibres, Blocs y EduCrea como copia vendida (`scripts/sync-rebost-client.sh`); Commons pendiente.
