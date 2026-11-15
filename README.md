@@ -18,6 +18,8 @@ Selector en iframe: `pickerUrl({type, request: newRequestId()})` y validar cada 
 
 Errores: `RebostError.code` ∈ `session | not_found | conflict | too_large | invalid | network | operation_failed`.
 
+Contrato del selector: `docs/CONTRACT.md`.
+
 Pruebas: `npm test` (Node 20+). Contrato del mensaje y de la API: ver `docs/rebost.md` en Commons.
 
 ## Estado

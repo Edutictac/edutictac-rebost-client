@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {RebostClient, RebostError, fetchSelection} from '../src/index.js';
-import {parseSelection} from '../src/selection.js';
+import {parseSelection, selectionMessage, cancelMessage, pickerUrl} from '../src/selection.js';
 
 const ID = 'img-' + 'a'.repeat(64);
 const PNG = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
@@ -102,4 +102,21 @@ test('update, duplicate y remove envían If-Match y cuerpo esperados', async () 
   assert.ok(calls.every(x => x[2]['If-Match'] === '"3"'));
   assert.equal(calls[0][3], '{"name":"Nou","type":"object"}');
   assert.ok(calls[1][1].endsWith('/copies'));
+});
+
+test('los mensajes construidos los acepta parseSelection (emisor y receptor comparten contrato)', () => {
+  const win = {}, ev = data => ({origin: 'https://commons.test', source: win, data}), opt = {source: win, request: 'r9'};
+  assert.deepEqual(parseSelection(ev(selectionMessage({request: 'r9', id: ID, name: 'Gat'})), opt), {id: ID, family: false});
+  assert.deepEqual(parseSelection(ev(selectionMessage({request: 'r9', id: ID, family: {revision: 5}})), opt),
+    {id: ID, family: true, familyRevision: 5});
+  assert.deepEqual(parseSelection(ev(cancelMessage('r9')), opt), {cancel: true});
+  assert.equal(parseSelection(ev(cancelMessage('otra')), opt), null);
+});
+
+test('pickerUrl incluye familias y colección', () => {
+  const u = new URL(pickerUrl({type: 'sprite', request: 'r', lang: 'va', collection: 'scratch', families: true}), 'https://commons.test');
+  assert.equal(u.searchParams.get('supports_families'), '1');
+  assert.equal(u.searchParams.get('selection'), 'sprite');
+  assert.equal(u.searchParams.get('collection'), 'scratch');
+  assert.equal(u.searchParams.get('mode'), 'pick');
 });

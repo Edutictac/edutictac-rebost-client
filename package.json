@@ -1,6 +1,6 @@
 {
   "name": "@edutictac/rebost-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cliente compartido del Rebost de EduTicTac (API /api/assets/v1): sin framework, ES modules.",
   "type": "module",
   "license": "MIT",
