@@ -25,9 +25,10 @@ const codeFor = status => status === 401 ? 'session' : status === 404 ? 'not_fou
  */
 export class RebostClient {
   constructor({endpoint = '/api/assets/v1', allowedOrigins = [], fetch: fetchImpl} = {}) {
-    const base = typeof location === 'undefined' ? undefined : location.href;
-    const url = new URL(endpoint, base);
-    const same = typeof location !== 'undefined' && url.origin === location.origin;
+    const hasLocation = typeof location !== 'undefined' && /^https?:/.test(location.href ?? '');
+    // Sin `location` (Node, pruebas) solo se admiten rutas relativas, que cuentan como mismo origen.
+    const url = hasLocation ? new URL(endpoint, location.href) : new URL(endpoint, 'http://same-origin.invalid');
+    const same = hasLocation ? url.origin === location.origin : url.origin === 'http://same-origin.invalid';
     if (url.search || url.hash) throw new RebostError('invalid_endpoint');
     if (!same && !allowedOrigins.includes(url.origin)) throw new RebostError('same_origin_required');
     this.endpoint = same ? url.pathname.replace(/\/$/, '') : url.origin + url.pathname.replace(/\/$/, '');
@@ -75,7 +76,7 @@ export class RebostClient {
   /** Blob con límite de tamaño aunque no haya Content-Length. */
   async blob(path, limit) {
     const response = await this.request(path);
-    const declared = Number(response.headers.get('content-length'));
+    const declared = Number(response.headers?.get?.('content-length'));
     if (declared > limit) throw new RebostError('too_large');
     const reader = response.body?.getReader?.();
     if (!reader) {
@@ -95,7 +96,7 @@ export class RebostClient {
       }
     } finally { await reader.cancel().catch(() => {}); }
     if (!size) throw new RebostError('invalid');
-    return new Blob(chunks, {type: response.headers.get('content-type') || ''});
+    return new Blob(chunks, {type: response.headers?.get?.('content-type') || ''});
   }
 
   async content(id) { return this.blob(RebostClient.itemPath(id) + '/content', LIMITS.image); }
