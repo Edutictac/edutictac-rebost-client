@@ -90,3 +90,16 @@ test('message usa el detalle del servidor y add() informa image_limit', async ()
   const big = {size: 6 * 1024 * 1024, type: 'image/png'};
   await assert.rejects(c.add(big, {name: 'x', type: 'sprite'}), e => e.code === 'too_large' && e.message === 'image_limit');
 });
+
+test('update, duplicate y remove envían If-Match y cuerpo esperados', async () => {
+  const calls = [];
+  const c = new RebostClient({fetch: async (url, o) => { calls.push([o.method, new URL(url, 'https://commons.test').pathname, o.headers, o.body]); return json({id: ID, revision: 4}); }});
+  const item = {id: ID, revision: 3};
+  await c.update(item, {name: 'Nou', type: 'object'});
+  await c.duplicate(item);
+  await c.remove(item);
+  assert.deepEqual(calls.map(x => x[0]), ['PATCH', 'POST', 'DELETE']);
+  assert.ok(calls.every(x => x[2]['If-Match'] === '"3"'));
+  assert.equal(calls[0][3], '{"name":"Nou","type":"object"}');
+  assert.ok(calls[1][1].endsWith('/copies'));
+});
